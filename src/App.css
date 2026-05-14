@@ -1,0 +1,146 @@
+:root {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "JetBrains Mono", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: #1a1a1a;
+  background-color: #fafafa;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Pre-V1 placeholder layout. Builder-aesthetic: monospace, generous whitespace,
+   left-aligned, no centered hero. The real UI lands during Week 1. */
+
+.lens-placeholder {
+  min-height: 100vh;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.lens-placeholder header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+
+.lens-placeholder .tagline {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.lens-placeholder section h2 {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  margin: 0 0 12px;
+}
+
+.lens-placeholder .status {
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  padding: 16px 20px;
+  border-radius: 6px;
+}
+
+.lens-placeholder .status-row {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.lens-placeholder .status-row .label {
+  min-width: 100px;
+  color: #888;
+}
+
+.lens-placeholder .status-row .value {
+  color: #1a1a1a;
+  word-break: break-word;
+}
+
+.lens-placeholder .next ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.lens-placeholder .next code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  background: #f0f0f0;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.lens-placeholder .next .defer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #888;
+  border-left: 2px solid #ddd;
+  padding-left: 12px;
+}
+
+.lens-placeholder footer {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid #e5e5e5;
+  font-size: 11px;
+  color: #999;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #e5e5e5;
+    background-color: #0d0d0d;
+  }
+
+  .lens-placeholder header h1 {
+    color: #fff;
+  }
+
+  .lens-placeholder .tagline,
+  .lens-placeholder section h2,
+  .lens-placeholder .status-row .label {
+    color: #888;
+  }
+
+  .lens-placeholder .status {
+    background: #161616;
+    border-color: #2a2a2a;
+  }
+
+  .lens-placeholder .status-row .value {
+    color: #e5e5e5;
+  }
+
+  .lens-placeholder .next code {
+    background: #1f1f1f;
+    color: #e5e5e5;
+  }
+
+  .lens-placeholder .next .defer {
+    border-left-color: #2a2a2a;
+    color: #888;
+  }
+
+  .lens-placeholder footer {
+    border-top-color: #2a2a2a;
+    color: #666;
+  }
+}

@@ -3,11 +3,11 @@
 # Rust / Cargo
 target/
 **/*.rs.bk
-Cargo.lock      # uncomment when this becomes a binary crate (we want lockfile for binaries)
+# Cargo.lock is COMMITTED for binary crates (Lens is one). Keep tracked.
 
 # Tauri build artifacts
 src-tauri/target/
-src-tauri/Cargo.lock
+# src-tauri/Cargo.lock is COMMITTED — see top-level rationale above
 src-tauri/gen/
 
 # Frontend (Vite/Bun/Node)
