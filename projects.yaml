@@ -1,0 +1,44 @@
+# Lens projects.yaml — cwd-prefix → project name mapping
+#
+# Purpose: Resolves an event's `cwd` field to a `project` name at event-emission time.
+# Process: Adapters apply this mapping when building agent-activity.v1 events.
+#   First prefix-match wins. Tilde is expanded and symlinks are resolved before compare.
+#   Unmapped cwds bucket into the `fallback` value and surface in the UI as
+#   "Uncategorized" with a one-click "Assign to project" affordance.
+# Connections: Read by Rust adapters in src/adapters/*.rs. Edit anytime; takes effect
+#   on next event emission. UI may also append entries when the user assigns a
+#   previously-Uncategorized event.
+
+schema_version: 0.1.0
+last_updated: 2026-05-14
+maintainer: cfelmer
+
+# First match wins. Order matters when prefixes nest.
+# Most-specific prefixes first; broader fallbacks last.
+projects:
+
+  # Active products
+  - name: Paperclip-Workflow-Beta
+    cwd_prefix: ~/Desktop/Projects/Paperclip-Workflow-Beta
+
+  - name: Understdy-Native
+    cwd_prefix: ~/Desktop/Projects/Understdy-Native
+
+  - name: Lens
+    cwd_prefix: ~/Projects/lens
+
+  # Personal infrastructure
+  - name: orchestrator
+    cwd_prefix: ~/.claude/orchestrator
+
+  - name: AI-Brain
+    cwd_prefix: ~/Library/Mobile Documents/com~apple~CloudDocs/AI-Brain
+
+  - name: ClaudeCode-workspace
+    cwd_prefix: ~/Desktop/Projects/Claude Code
+
+  # Add new projects as they spin up. Example:
+  # - name: my-new-side-project
+  #   cwd_prefix: ~/Desktop/Projects/my-new-side-project
+
+fallback: Uncategorized

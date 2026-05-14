@@ -1,0 +1,63 @@
+# Lens .gitignore
+
+# Rust / Cargo
+target/
+**/*.rs.bk
+Cargo.lock      # uncomment when this becomes a binary crate (we want lockfile for binaries)
+
+# Tauri build artifacts
+src-tauri/target/
+src-tauri/Cargo.lock
+src-tauri/gen/
+
+# Frontend (Vite/Bun/Node)
+node_modules/
+dist/
+dist-ssr/
+.vite/
+.parcel-cache/
+*.local
+
+# Bun
+bun.lockb       # uncomment when stable; lockfile churn early can be noisy
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor / IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and runtime
+*.log
+debug.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test artifacts
+coverage/
+.nyc_output/
+
+# OS / misc
+Thumbs.db
+
+# Lens-specific runtime data (NEVER commit user session data)
+~/.lens/
+/Users/*/Library/Application\ Support/Lens/
+tests/fixtures/real-*.jsonl    # Real user data fixtures stay local; only synthetic examples commit
