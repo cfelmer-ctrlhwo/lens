@@ -22,7 +22,11 @@
 
 pub mod db;
 pub mod events;
+pub mod issues;
+pub mod query;
 pub mod schema;
 
 pub use db::Database;
 pub use events::{upsert_event, UpsertOutcome};
+pub use issues::{record_issue, IngestionIssue, IssueSeverity};
+pub use query::{read_event_detail, read_timeline, Cursor, EventFilters, EventPage, TimelineRow};
