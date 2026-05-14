@@ -128,6 +128,55 @@ pub fn get_app_status(state: State<LensState>) -> Result<AppStatus, String> {
 #[allow(dead_code)]
 fn _unused_ref(_: &TimelineRow) {}
 
+/// Dev-only command for end-to-end smoke testing without the ingestion pipeline.
+/// Inserts a synthetic agent-activity event. The placeholder UI exposes a button
+/// that calls this so we can verify React → IPC → storage → IPC → React end-to-end.
+///
+/// Remove or gate behind a feature flag once real ingestion ships.
+#[tauri::command]
+pub fn insert_demo_event(state: State<LensState>) -> Result<String, String> {
+    use crate::agent_activity::{CostSource, EventStatus, EventType};
+    use crate::event_id::derive_event_id;
+    use chrono::Utc;
+
+    let db = state.db.lock().map_err(|e| format!("state lock poisoned: {}", e))?;
+    let now = Utc::now();
+    // Unique-per-call event_id: include nanos in the session_id so each click
+    // creates a new row instead of UPSERTing the same one.
+    let session_id = format!("demo-{}", now.timestamp_nanos_opt().unwrap_or(0));
+    let event_id = derive_event_id("claude-code", &session_id, now);
+
+    let event = AgentActivityEvent {
+        schema_version: "0.1.1".into(),
+        event_id: event_id.clone(),
+        tool: "claude-code".into(),
+        tool_version: Some("2.1.139".into()),
+        event_type: EventType::SessionCompleted,
+        started_at: now,
+        ended_at: Some(now),
+        status: EventStatus::Success,
+        session_id: Some(session_id),
+        project: Some("Demo".into()),
+        cwd: Some("/Users/demo/Projects/Demo".into()),
+        model: Some("claude-opus-4-7".into()),
+        provider: Some("anthropic".into()),
+        tokens_in: Some(100),
+        tokens_out: Some(50),
+        tokens_total: Some(150),
+        cost_usd_estimated: Some(0.005),
+        cost_source: Some(CostSource::LogParse),
+        artifacts: None,
+        error_message: None,
+        summary: Some("Synthetic event from insert_demo_event Tauri command".into()),
+        tags: Some(vec!["demo".into()]),
+        raw_ref: None,
+        extra: None,
+    };
+
+    storage::upsert_event(&db, &event).map_err(|e| e.to_string())?;
+    Ok(event_id)
+}
+
 // ============================================================
 // Tests — exercise the inner logic without spinning up Tauri's full runtime.
 // We rely on the underlying storage functions being tested (76 cases in

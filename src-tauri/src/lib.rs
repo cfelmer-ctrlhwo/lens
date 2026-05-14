@@ -67,6 +67,7 @@ pub fn run() {
             ipc::count_issues_per_project,
             ipc::recent_issues,
             ipc::get_app_status,
+            ipc::insert_demo_event,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

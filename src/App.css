@@ -104,6 +104,54 @@
   color: #999;
 }
 
+.lens-placeholder .status-row.error .value {
+  color: #c00;
+}
+
+.lens-placeholder .status-row .value.mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 500;
+}
+
+.lens-placeholder .actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.lens-placeholder .actions button {
+  background: #1a1a1a;
+  color: #fafafa;
+  border: 1px solid #1a1a1a;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.lens-placeholder .actions button:hover:not(:disabled) {
+  background: #333;
+}
+
+.lens-placeholder .actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lens-placeholder .actions .hint {
+  font-size: 11px;
+  color: #888;
+  flex-basis: 100%;
+  margin-top: 4px;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #e5e5e5;
@@ -141,6 +189,29 @@
 
   .lens-placeholder footer {
     border-top-color: #2a2a2a;
+    color: #666;
+  }
+
+  .lens-placeholder .status-row.error .value {
+    color: #ff6464;
+  }
+
+  .lens-placeholder .actions {
+    border-top-color: #2a2a2a;
+  }
+
+  .lens-placeholder .actions button {
+    background: #e5e5e5;
+    color: #1a1a1a;
+    border-color: #e5e5e5;
+  }
+
+  .lens-placeholder .actions button:hover:not(:disabled) {
+    background: #fff;
+    border-color: #fff;
+  }
+
+  .lens-placeholder .actions .hint {
     color: #666;
   }
 }
