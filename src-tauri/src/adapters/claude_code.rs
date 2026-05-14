@@ -359,23 +359,8 @@ impl ClaudeCodeRawSession {
 // of this module can use it without an additional import path.
 pub use crate::project_resolver::ProjectResolver;
 
-/// Reads pricing.yaml, computes USD cost from token counts.
-pub struct PricingTable {
-    // entries: Vec<PricingEntry>,
-}
-
-impl PricingTable {
-    pub fn lookup_cost(
-        &self,
-        provider: &str,
-        model: &str,
-        tokens_in: u64,
-        tokens_out: u64,
-    ) -> Option<f64> {
-        let _ = (provider, model, tokens_in, tokens_out);
-        todo!("Week 1: lookup (provider, model) in pricing.yaml, apply input/output rates")
-    }
-}
+// PricingTable lives in crate::pricing. Re-exported for the same reason.
+pub use crate::pricing::PricingTable;
 
 // ============================================================
 // Tests — skeleton; real fixtures and assertions land Week 1
