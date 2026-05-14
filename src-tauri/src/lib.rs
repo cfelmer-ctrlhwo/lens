@@ -3,6 +3,7 @@
 mod adapters;
 mod agent_activity;
 mod event_id;
+mod ingestion;
 mod ipc;
 mod pricing;
 mod project_resolver;
