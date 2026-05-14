@@ -1,5 +1,6 @@
 // Lens adapters (added during scaffold 2026-05-14)
 mod adapters;
+mod agent_activity;
 mod event_id;
 mod pricing;
 mod project_resolver;

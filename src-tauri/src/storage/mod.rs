@@ -21,6 +21,8 @@
 //! queries clean and FTS5 indexes unpolluted; UI sidebar badge joins on project.
 
 pub mod db;
+pub mod events;
 pub mod schema;
 
 pub use db::Database;
+pub use events::{upsert_event, UpsertOutcome};

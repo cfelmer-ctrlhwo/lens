@@ -13,87 +13,12 @@
 //! STATUS: skeleton. Function signatures, error model, and data flow are committed.
 //!   Bodies marked todo!() are Week 1 work. Compile-checked structure; runtime not yet wired.
 
+use crate::agent_activity::{AgentActivityEvent, CostSource, EventStatus, EventType};
 use crate::event_id::derive_event_id;
 use std::path::{Path, PathBuf};
 
-// ============================================================
-// Schema types (mirror agent-activity-v1.md §5)
-// ============================================================
-
-/// One agent-activity.v1 event. Round-trips to/from the JSON shape in the spec.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AgentActivityEvent {
-    pub schema_version: String,
-    pub event_id: String,
-    pub tool: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_version: Option<String>,
-    pub event_type: EventType,
-    pub started_at: chrono::DateTime<chrono::Utc>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ended_at: Option<chrono::DateTime<chrono::Utc>>,
-    pub status: EventStatus,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub session_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub project: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cwd: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub model: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tokens_in: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tokens_out: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tokens_total: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cost_usd_estimated: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cost_source: Option<CostSource>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub artifacts: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error_message: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub summary: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub raw_ref: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub extra: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EventType {
-    SessionStarted,
-    SessionCompleted,
-    SessionFailed,
-    ScheduledRunCompleted,
-    ParserError,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EventStatus {
-    Success,
-    Failure,
-    Partial,
-    Unknown,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CostSource {
-    LogParse,
-    ApiBilling,
-    ToolReported,
-    None,
-}
+// Schema types moved to crate::agent_activity. The adapter just builds events
+// from raw source data; the type definitions are shared with storage and IPC.
 
 // ============================================================
 // Adapter trait (every tool adapter implements this)
