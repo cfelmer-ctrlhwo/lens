@@ -13,6 +13,7 @@
 //! STATUS: skeleton. Function signatures, error model, and data flow are committed.
 //!   Bodies marked todo!() are Week 1 work. Compile-checked structure; runtime not yet wired.
 
+use crate::event_id::derive_event_id;
 use std::path::{Path, PathBuf};
 
 // ============================================================
@@ -199,12 +200,12 @@ impl ClaudeCodeAdapter {
     ) -> ParseResult {
         let mut warnings: Vec<String> = Vec::new();
 
-        // Idempotent event_id: deterministic from (tool, session_id, started_at)
-        let event_id = derive_event_id(
-            "claude-code",
-            &raw.session_id,
-            &raw.started_at_str(),
-        );
+        // Pre-validated at this point — see parse() above. Unwrap once for reuse.
+        let started_at = raw.started_at.expect("validated by parse() before calling build_terminal_event");
+
+        // Idempotent event_id: deterministic ULID from (tool, session_id, started_at).
+        // See src/event_id.rs for the derivation contract.
+        let event_id = derive_event_id("claude-code", &raw.session_id, started_at);
 
         // Event type + status from raw.outcome. Recoverable on unknown values.
         let (event_type, status, error_message) = match raw.outcome.as_deref() {
@@ -270,7 +271,7 @@ impl ClaudeCodeAdapter {
             tool: "claude-code".into(),
             tool_version: raw.tool_version.clone(),
             event_type,
-            started_at: raw.started_at.expect("validated above"),
+            started_at,
             ended_at: raw.ended_at,
             status,
             session_id: Some(raw.session_id.clone()),
@@ -350,20 +351,9 @@ impl ClaudeCodeRawSession {
 // Helpers — interfaces only; bodies are Week 1 work
 // ============================================================
 
-/// Derive an idempotent event_id from (tool, session_id, started_at).
-/// Reparsing the same source MUST yield the same event_id.
-///
-/// Week 1 decision: ULID vs UUIDv7. Both are sortable and time-prefixed.
-/// ULID has wider Rust ecosystem support today; UUIDv7 is the emerging
-/// standard. Pick one in the spike, commit, document in the schema spec
-/// changelog.
-///
-/// Likely implementation: hash(tool || session_id || started_at) →
-/// 128-bit ID with time-prefix from started_at.
-fn derive_event_id(tool: &str, session_id: &str, started_at: &str) -> String {
-    let _ = (tool, session_id, started_at);
-    todo!("Week 1: pick ULID or UUIDv7, implement deterministic derivation")
-}
+/// derive_event_id has been promoted to its own module: see `crate::event_id`.
+/// ULID was chosen over UUIDv7 per agent-activity-v1.md §5.1; the open question
+/// in the spec is resolved.
 
 /// Reads projects.yaml, applies prefix-match resolution. Unmapped cwds
 /// return the fallback value (default "Uncategorized").

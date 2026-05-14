@@ -1,5 +1,6 @@
 // Lens adapters (added during scaffold 2026-05-14)
 mod adapters;
+mod event_id;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
