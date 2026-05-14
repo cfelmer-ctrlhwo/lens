@@ -355,19 +355,9 @@ impl ClaudeCodeRawSession {
 /// ULID was chosen over UUIDv7 per agent-activity-v1.md §5.1; the open question
 /// in the spec is resolved.
 
-/// Reads projects.yaml, applies prefix-match resolution. Unmapped cwds
-/// return the fallback value (default "Uncategorized").
-pub struct ProjectResolver {
-    // mappings: Vec<(PathBuf, String)>,
-    // fallback: String,
-}
-
-impl ProjectResolver {
-    pub fn resolve(&self, cwd: &str) -> String {
-        let _ = cwd;
-        todo!("Week 1: load projects.yaml, normalize cwd (tilde + symlinks), first-prefix-match")
-    }
-}
+// ProjectResolver lives in crate::project_resolver. Re-exported here so callers
+// of this module can use it without an additional import path.
+pub use crate::project_resolver::ProjectResolver;
 
 /// Reads pricing.yaml, computes USD cost from token counts.
 pub struct PricingTable {
