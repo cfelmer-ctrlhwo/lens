@@ -61,3 +61,4 @@ Thumbs.db
 ~/.lens/
 /Users/*/Library/Application\ Support/Lens/
 tests/fixtures/real-*.jsonl    # Real user data fixtures stay local; only synthetic examples commit
+.gstack/
