@@ -1,0 +1,25 @@
+# CODEOWNERS — gates review requirements for sensitive paths.
+#
+# Purpose: Per /cso recommendation, any modification to CI/build infra, the
+#   Homebrew tap formula, or supply-chain config (dependabot) must be reviewed
+#   by the project owner. GitHub automatically requests review from listed
+#   owners on any PR that touches a matched path.
+# Process: GitHub reads this file from .github/CODEOWNERS on the base branch
+#   of every PR. Last matching rule wins, so order from general to specific.
+# Connections: Pairs with branch protection on `main` (configured in repo
+#   settings, not in this file) which should enforce "Require review from
+#   Code Owners" for merges. Matches .github/workflows/ci.yml,
+#   Formula/lens.rb, .github/dependabot.yml.
+
+# Default owner for everything in the repo.
+*                       @cfelmer-ctrlhwo
+
+# CI / supply-chain — explicit ownership so any pipeline change goes through
+# the project owner even if a future broader rule relaxes the default.
+/.github/               @cfelmer-ctrlhwo
+/.github/workflows/     @cfelmer-ctrlhwo
+/.github/CODEOWNERS     @cfelmer-ctrlhwo
+/.github/dependabot.yml @cfelmer-ctrlhwo
+
+# Homebrew tap formula — distribution artifact, must not change without review.
+/Formula/               @cfelmer-ctrlhwo

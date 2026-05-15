@@ -1,0 +1,77 @@
+# Dependabot — automated dependency update PRs.
+#
+# Purpose: Keep Rust crates, npm packages, and pinned GitHub Action SHAs
+#   current. Pairs with the SHA-pinning policy in .github/workflows/ci.yml —
+#   Dependabot bumps the SHA pin and the PR review process verifies the new
+#   commit is legitimate.
+# Process: GitHub runs Dependabot weekly per the schedule below. PRs are
+#   labelled and routed to the project owner via CODEOWNERS. Patch + minor
+#   updates auto-group into a single PR per ecosystem to reduce churn.
+# Connections: Reads src-tauri/Cargo.toml, package.json, .github/workflows/*.
+#   PRs land against `main` and trigger ci.yml. CODEOWNERS gates review.
+
+version: 2
+
+updates:
+  # Rust backend (Tauri / src-tauri).
+  - package-ecosystem: "cargo"
+    directory: "/src-tauri"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "rust"
+    commit-message:
+      prefix: "cargo"
+    groups:
+      cargo-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Frontend (React / Vite / Tauri JS bindings).
+  # Dependabot does not natively support `bun.lock` but does support
+  # `package.json`; it opens PRs against package.json and the developer
+  # re-runs `bun install` locally before merging.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "npm"
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions — bumps the SHA pins in ci.yml.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "actions"
+    groups:
+      actions-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
