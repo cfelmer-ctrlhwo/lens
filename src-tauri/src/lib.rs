@@ -11,8 +11,31 @@ pub mod pricing;
 pub mod project_resolver;
 pub mod storage;
 
+use std::path::Path;
 use storage::Database;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
+
+/// Default projects.yaml shipped with the binary. Written to app_data_dir on
+/// first launch if no user override exists, then ProjectResolver loads from
+/// that on-disk copy so the user can edit it freely.
+const DEFAULT_PROJECTS_YAML: &str = include_str!("../../projects.yaml");
+
+/// Default pricing.yaml shipped with the binary. Same bootstrap pattern.
+const DEFAULT_PRICING_YAML: &str = include_str!("../../pricing.yaml");
+
+/// Bootstrap a config file in app_data_dir: if it doesn't exist, write the
+/// bundled default. Returns the on-disk path either way. Errors silently fall
+/// back to writing nothing — caller decides whether to use empty defaults.
+fn bootstrap_config_file(app_data_dir: &Path, filename: &str, default_contents: &str) -> std::path::PathBuf {
+    let target = app_data_dir.join(filename);
+    if !target.exists() {
+        match std::fs::write(&target, default_contents) {
+            Ok(_) => eprintln!("[lens] Wrote default {} to {}", filename, target.display()),
+            Err(e) => eprintln!("[lens] WARN: could not write default {}: {}", filename, e),
+        }
+    }
+    target
+}
 
 /// Greet command — kept from the Tauri scaffold as a Rust↔React IPC bridge
 /// smoke test. The placeholder UI calls this to confirm the bridge works
@@ -59,12 +82,24 @@ pub fn run() {
                 }
             };
 
+            // Bootstrap user-editable config files. First launch writes the
+            // shipped defaults; subsequent launches read whatever's on disk
+            // so user edits persist.
+            let projects_yaml_path =
+                bootstrap_config_file(&data_dir, "projects.yaml", DEFAULT_PROJECTS_YAML);
+            let pricing_yaml_path =
+                bootstrap_config_file(&data_dir, "pricing.yaml", DEFAULT_PRICING_YAML);
+
             let state = ipc::LensState::new(db);
             // Clone the shared Arc<Mutex<Database>> for the background ingestion
             // task to use. Tauri's State<T> uses its own internal Arc; this
             // second clone lets the spawned task hold a parallel reference.
             let db_for_ingestion = state.db.clone();
             app.manage(state);
+
+            // Keep a handle so the spawned task can emit completion events
+            // back to the React frontend (which subscribes via @tauri-apps/api/event).
+            let app_handle = app.handle().clone();
 
             // Spawn backfill in a background thread. spawn_blocking is the
             // right call: backfill() is synchronous (locks the Mutex around
@@ -76,13 +111,41 @@ pub fn run() {
                 use pricing::PricingTable;
                 use project_resolver::ProjectResolver;
 
-                // V1: empty ProjectResolver + PricingTable. The user's
-                // projects.yaml/pricing.yaml-based config lands in V1.x.
-                // Today all cwds bucket to "Uncategorized" and costs are
-                // not computed, but the timeline still renders real events.
+                // Load real ProjectResolver + PricingTable from the bootstrapped
+                // YAML. Either failure falls back to ::empty() with a loud log line —
+                // events still ingest, they just bucket to "Uncategorized" and skip
+                // cost computation. Better degraded than missing.
+                let project_resolver = match ProjectResolver::load_from_path(&projects_yaml_path)
+                {
+                    Ok(r) => {
+                        eprintln!("[lens] Loaded projects.yaml from {}", projects_yaml_path.display());
+                        r
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "[lens] WARN: could not load projects.yaml ({}); cwd → project resolution disabled, all events bucket to Uncategorized",
+                            e
+                        );
+                        ProjectResolver::empty()
+                    }
+                };
+                let pricing = match PricingTable::load_from_path(&pricing_yaml_path) {
+                    Ok(p) => {
+                        eprintln!("[lens] Loaded pricing.yaml from {}", pricing_yaml_path.display());
+                        p
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "[lens] WARN: could not load pricing.yaml ({}); cost computation disabled",
+                            e
+                        );
+                        PricingTable::empty()
+                    }
+                };
+
                 let adapter = ClaudeCodeAdapter {
-                    project_resolver: ProjectResolver::empty(),
-                    pricing: PricingTable::empty(),
+                    project_resolver,
+                    pricing,
                 };
                 let pipeline = IngestionPipeline::new(
                     db_for_ingestion,
@@ -94,9 +157,10 @@ pub fn run() {
                 let started = std::time::Instant::now();
                 match pipeline.backfill() {
                     Ok(report) => {
+                        let duration_s = started.elapsed().as_secs_f32();
                         eprintln!(
                             "[lens] Backfill complete in {:.1}s: {} files scanned ({} skipped active, {} skipped subagent), {} inserted, {} updated, {} unchanged, {} recoverable, {} fatal",
-                            started.elapsed().as_secs_f32(),
+                            duration_s,
                             report.files_scanned,
                             report.files_skipped_active,
                             report.files_skipped_subagent,
@@ -106,9 +170,26 @@ pub fn run() {
                             report.recoverable_issues,
                             report.fatal_issues,
                         );
+                        // Notify the React frontend so it can refetch the
+                        // timeline + counters without waiting for the next
+                        // 2s app-status poll. Payload mirrors BackfillReport.
+                        let payload = serde_json::json!({
+                            "duration_s": duration_s,
+                            "files_scanned": report.files_scanned,
+                            "events_inserted": report.events_inserted,
+                            "events_updated": report.events_updated,
+                            "events_unchanged": report.events_unchanged,
+                            "recoverable_issues": report.recoverable_issues,
+                            "fatal_issues": report.fatal_issues,
+                        });
+                        let _ = app_handle.emit("lens:backfill-complete", payload);
                     }
                     Err(e) => {
                         eprintln!("[lens] Backfill failed: {}", e);
+                        let _ = app_handle.emit(
+                            "lens:backfill-error",
+                            serde_json::json!({ "error": e.to_string() }),
+                        );
                     }
                 }
             });

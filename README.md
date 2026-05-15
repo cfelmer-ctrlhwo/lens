@@ -22,7 +22,7 @@ Causal **stitching across tools** — the "morning replay" feature where Lens au
 
 ```bash
 # Once V1 ships:
-brew install cfelmer/lens/lens
+brew install cfelmer-ctrlhwo/lens/lens
 ```
 
 Direct binary download will also be available from GitHub Releases. macOS-only at launch; Linux + Windows follow because Tauri is cross-platform.
@@ -30,7 +30,7 @@ Direct binary download will also be available from GitHub Releases. macOS-only a
 ## Build from source
 
 ```bash
-git clone https://github.com/cfelmer/lens
+git clone https://github.com/cfelmer-ctrlhwo/lens
 cd lens
 bun install
 cargo tauri dev   # local dev mode

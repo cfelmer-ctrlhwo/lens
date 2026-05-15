@@ -5,7 +5,7 @@ description = "Mac-native AI activity dashboard. Parses session logs from Claude
 authors = ["Clay Felmer <cfelmer@gmail.com>"]
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/cfelmer/lens"
+repository = "https://github.com/cfelmer-ctrlhwo/lens"
 readme = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

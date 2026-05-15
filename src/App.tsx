@@ -8,6 +8,7 @@
 //              goes through the hooks. Styled by ./App.css.
 
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 
@@ -45,6 +46,33 @@ function App() {
       .then((reply) => setBridgeStatus(`OK -- ${reply}`))
       .catch((err) => setBridgeStatus(`ERROR -- ${String(err)}`));
   }, []);
+
+  // Listen for backend backfill-complete events so the UI refreshes the moment
+  // ingestion writes new rows, without waiting for the next 2s status poll.
+  // Tauri returns an UnlistenFn that we MUST call on cleanup to avoid leaking
+  // the listener across hot reloads.
+  useEffect(() => {
+    let unlistenFn: (() => void) | undefined;
+    listen<{ events_inserted: number; duration_s: number }>(
+      "lens:backfill-complete",
+      (event) => {
+        console.log(
+          "[lens] backfill complete:",
+          event.payload.events_inserted,
+          "events inserted in",
+          event.payload.duration_s.toFixed(1),
+          "s"
+        );
+        refetchTimeline();
+        void refreshStatus();
+      }
+    ).then((fn) => {
+      unlistenFn = fn;
+    });
+    return () => {
+      unlistenFn?.();
+    };
+  }, [refetchTimeline, refreshStatus]);
 
   // Aggregate any error source into one dismissible banner. Whichever surfaced most recently wins;
   // dismissing clears the underlying source so it doesn't re-appear on next render.
