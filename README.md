@@ -45,11 +45,22 @@ The wire format for AI activity events is documented in [`docs/agent-activity-v1
 
 ## Related projects
 
-- **Production AI observability** (different audience — production teams, not solo devs): [Langfuse](https://github.com/langfuse/langfuse), [Opik](https://github.com/comet-ml/opik), [Helicone](https://github.com/Helicone/helicone), [Logfire](https://github.com/pydantic/logfire), [Langtrace](https://github.com/Scale3-Labs/langtrace) (OTel-based), [Laminar](https://github.com/lmnr-ai/lmnr).
-- **Claude Code session launcher** (different wedge — they help you USE Claude, Lens observes what you've done): [opcode](https://github.com/winfunc/opcode).
-- **Multi-engine AI management** (closest positioning overlap): [clawpanel](https://github.com/qingchencloud/clawpanel).
-- **Schema alignment partner**: [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/).
-- **V2 emission target** (when the schema goes public): [AgentField](https://github.com/Agent-Field/agentfield).
+Lens sits in the **observe / unify** quadrant of the multi-agent space. Most existing projects are in the **dispatch / orchestrate** quadrant — they spawn agents; Lens shows you what those agents did. They feed each other naturally.
+
+**Complementary upstream — agent dispatchers / orchestrators that create the activity Lens observes:**
+- [ComposioHQ/agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator) (7K stars, enterprise scale) — plans tasks, spawns agents in worktrees, routes CI feedback and review comments back to agents. Has a `tracker` plugin slot — natural integration surface for a future Lens emitter plugin.
+- [johannesjo/parallel-code](https://github.com/johannesjo/parallel-code) (627 stars, solo-dev scale) — desktop GUI that runs Claude Code + Codex + Gemini side-by-side, each in its own git worktree.
+- [winfunc/opcode](https://github.com/winfunc/opcode) (21K stars) — Tauri-based Claude Code session launcher + custom-agent IDE. Single-tool focus, but the most popular dispatcher.
+- [qingchencloud/clawpanel](https://github.com/qingchencloud/clawpanel) (2.7K stars) — multi-engine AI management panel for OpenClaw + Hermes.
+
+**Schema alignment partner:**
+- [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — `agent-activity.v1` aliases its fields into OTel attribute paths so OTel-aware tools can consume Lens events without translation. See `docs/agent-activity-v1.md` §3.1.
+
+**Different market — production AI observability** (teams running AI services in production, not solo devs running many AI tools on their Mac):
+- [Langfuse](https://github.com/langfuse/langfuse), [Opik](https://github.com/comet-ml/opik), [Helicone](https://github.com/Helicone/helicone), [Logfire](https://github.com/pydantic/logfire), [Langtrace](https://github.com/Scale3-Labs/langtrace) (OTel-based), [Laminar](https://github.com/lmnr-ai/lmnr).
+
+**V2 emission target** — projects that build agent runtime + would benefit from native `agent-activity.v1` emission:
+- [Agent-Field/agentfield](https://github.com/Agent-Field/agentfield) (1.8K stars + ecosystem) — agent backend with "observable from day one" as a marketing pillar.
 
 ## Contributing
 
