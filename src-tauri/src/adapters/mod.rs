@@ -4,3 +4,4 @@
 #![allow(dead_code)]  // skeleton — many items used by Week 1 work only
 
 pub mod claude_code;
+pub mod codex;
