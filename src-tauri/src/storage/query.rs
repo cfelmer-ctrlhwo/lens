@@ -18,7 +18,7 @@
 //! views project hot columns directly so we don't pay serde cost for events
 //! the user is just scrolling past.
 
-use rusqlite::{params, types::Value, OptionalExtension};
+use rusqlite::{types::Value, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
 use crate::agent_activity::AgentActivityEvent;

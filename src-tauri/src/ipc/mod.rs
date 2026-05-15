@@ -13,7 +13,7 @@
 //! writer-task + read-pool architecture from the design doc is V1.x; V1 ships
 //! with the simpler Mutex pattern.
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::State;
 
 use crate::agent_activity::AgentActivityEvent;
@@ -22,13 +22,20 @@ use crate::storage::{
 };
 
 /// Tauri-managed application state. Held for the lifetime of the app.
+///
+/// The Database lives behind `Arc<Mutex<>>` so the ingestion background task
+/// can share ownership with the IPC command path. Tauri's `State<T>` is
+/// internally Arc-ed, but we need a SECOND Arc handle for the spawn'd
+/// backfill loop — hence the explicit Arc here.
 pub struct LensState {
-    pub db: Mutex<Database>,
+    pub db: Arc<Mutex<Database>>,
 }
 
 impl LensState {
     pub fn new(db: Database) -> Self {
-        Self { db: Mutex::new(db) }
+        Self {
+            db: Arc::new(Mutex::new(db)),
+        }
     }
 }
 

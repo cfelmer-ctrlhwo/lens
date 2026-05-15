@@ -1,13 +1,15 @@
 // Lens crate root.
 
-mod adapters;
-mod agent_activity;
-mod event_id;
-mod ingestion;
+// Lens internal modules. Most are private; specific items are re-exported below
+// for use by examples/* and integration tests.
+pub mod adapters;
+pub mod agent_activity;
+pub mod event_id;
+pub mod ingestion;
 mod ipc;
-mod pricing;
-mod project_resolver;
-mod storage;
+pub mod pricing;
+pub mod project_resolver;
+pub mod storage;
 
 use storage::Database;
 use tauri::Manager;
@@ -57,7 +59,60 @@ pub fn run() {
                 }
             };
 
-            app.manage(ipc::LensState::new(db));
+            let state = ipc::LensState::new(db);
+            // Clone the shared Arc<Mutex<Database>> for the background ingestion
+            // task to use. Tauri's State<T> uses its own internal Arc; this
+            // second clone lets the spawned task hold a parallel reference.
+            let db_for_ingestion = state.db.clone();
+            app.manage(state);
+
+            // Spawn backfill in a background thread. spawn_blocking is the
+            // right call: backfill() is synchronous (locks the Mutex around
+            // each file's storage write), so it must NOT run on the tokio
+            // single-threaded executor that the UI also uses.
+            tauri::async_runtime::spawn_blocking(move || {
+                use adapters::claude_code::ClaudeCodeAdapter;
+                use ingestion::{IngestionPipeline, PipelineConfig};
+                use pricing::PricingTable;
+                use project_resolver::ProjectResolver;
+
+                // V1: empty ProjectResolver + PricingTable. The user's
+                // projects.yaml/pricing.yaml-based config lands in V1.x.
+                // Today all cwds bucket to "Uncategorized" and costs are
+                // not computed, but the timeline still renders real events.
+                let adapter = ClaudeCodeAdapter {
+                    project_resolver: ProjectResolver::empty(),
+                    pricing: PricingTable::empty(),
+                };
+                let pipeline = IngestionPipeline::new(
+                    db_for_ingestion,
+                    vec![Box::new(adapter)],
+                    PipelineConfig::defaults_for_claude_code(),
+                );
+
+                eprintln!("[lens] Starting backfill of ~/.claude/projects...");
+                let started = std::time::Instant::now();
+                match pipeline.backfill() {
+                    Ok(report) => {
+                        eprintln!(
+                            "[lens] Backfill complete in {:.1}s: {} files scanned ({} skipped active, {} skipped subagent), {} inserted, {} updated, {} unchanged, {} recoverable, {} fatal",
+                            started.elapsed().as_secs_f32(),
+                            report.files_scanned,
+                            report.files_skipped_active,
+                            report.files_skipped_subagent,
+                            report.events_inserted,
+                            report.events_updated,
+                            report.events_unchanged,
+                            report.recoverable_issues,
+                            report.fatal_issues,
+                        );
+                    }
+                    Err(e) => {
+                        eprintln!("[lens] Backfill failed: {}", e);
+                    }
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
